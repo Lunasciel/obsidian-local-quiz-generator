@@ -1,9 +1,21 @@
-import { QuizSettings } from "../settings/config";
+import { GeneratorSettings } from "./generatorTypes";
 
+/**
+ * Abstract base class for LLM generators.
+ *
+ * Generators are responsible for:
+ * 1. Calling LLM APIs to generate quiz questions
+ * 2. Computing similarity scores for answer evaluation
+ *
+ * The base class provides prompt generation based on GeneratorSettings,
+ * while concrete implementations handle provider-specific API calls.
+ *
+ * Requirements: 3.2, 3.3
+ */
 export default abstract class Generator {
-	protected readonly settings: QuizSettings;
+	protected readonly settings: GeneratorSettings;
 
-	protected constructor(settings: QuizSettings) {
+	protected constructor(settings: GeneratorSettings) {
 		this.settings = settings;
 	}
 
@@ -38,15 +50,30 @@ export default abstract class Generator {
 			.map(q => `The JSON object representing ${q.type} questions must have the following properties:\n${q.format}`)
 			.join("\n");
 
-		return "You are an assistant specialized in generating exam-style questions and answers. Your response must only be a JSON object with the following property:\n" +
+		const accuracyRules = `CRITICAL ACCURACY RULES:
+- You MUST ONLY use information explicitly stated in the provided text
+- You MUST NOT infer, extrapolate, or add any external knowledge
+- You MUST NOT "fill in gaps" or make assumptions about unstated information
+- Every question and answer MUST be directly traceable to the source text
+- If information is insufficient to create a meaningful question, skip it entirely
+- When in doubt, omit rather than fabricate
+
+`;
+
+		return "You are an assistant specialized in generating exam-style questions and answers. " + accuracyRules +
+			"Your response must only be a JSON object with the following property:\n" +
 			`"questions": An array of JSON objects, where each JSON object represents a question and answer pair. Each question type has a different JSON object format.\n\n` +
 			`${activeFormats}\nFor example, if I ask you to generate ${this.systemPromptQuestions()}, the structure of your response should look like this:\n` +
 			`${this.exampleResponse()}` + (this.settings.language !== "English" ? `\n\n${this.generationLanguage()}` : "");
 	}
 
 	protected userPrompt(contents: string[]): string {
-		return "Generate " + this.userPromptQuestions() + " about the following text:\n" + contents.join("") +
-			"\n\nIf the above text contains LaTeX, you should use $...$ (inline math mode) for mathematical symbols. " +
+		const questionCount = this.userPromptQuestions();
+		return "Generate " + questionCount + " about the following text:\n" + contents.join("") +
+			"\n\nIMPORTANT: Use ONLY the information provided above. Do not add any external knowledge, do not infer unstated facts, " +
+			"and do not embellish or expand on the content. If the text doesn't contain enough information for all requested questions, " +
+			"create fewer questions rather than fabricating content.\n\n" +
+			"If the above text contains LaTeX, you should use $...$ (inline math mode) for mathematical symbols. " +
 			"The overall focus should be on assessing understanding and critical thinking.";
 	}
 

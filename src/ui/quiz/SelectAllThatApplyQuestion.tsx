@@ -1,13 +1,17 @@
-import { App, Component, MarkdownRenderer } from "obsidian";
+import { App, Component } from "obsidian";
 import { useEffect, useRef, useState } from "react";
 import { SelectAllThatApply } from "../../utils/types";
+import { renderQuizContent } from "../../utils/rendering";
+import { QuestionConsensusTrail } from "../../consensus/types";
+import ConsensusIndicator from "../components/ConsensusIndicator";
 
 interface SelectAllThatApplyQuestionProps {
 	app: App;
 	question: SelectAllThatApply;
+	consensusTrail?: QuestionConsensusTrail;
 }
 
-const SelectAllThatApplyQuestion = ({ app, question }: SelectAllThatApplyQuestionProps) => {
+const SelectAllThatApplyQuestion = ({ app, question, consensusTrail }: SelectAllThatApplyQuestionProps) => {
 	const [userAnswer, setUserAnswer] = useState<number[]>([]);
 	const [submitted, setSubmitted] = useState<boolean>(false);
 	const questionRef = useRef<HTMLDivElement>(null);
@@ -16,16 +20,16 @@ const SelectAllThatApplyQuestion = ({ app, question }: SelectAllThatApplyQuestio
 	useEffect(() => {
 		const component = new Component();
 
-		question.question.split("\\n").forEach(questionFragment => {
-			if (questionRef.current) {
-				MarkdownRenderer.render(app, questionFragment, questionRef.current, "", component);
-			}
-		});
+		// Render question with table support
+		if (questionRef.current) {
+			renderQuizContent(app, question.question, questionRef.current, "", component);
+		}
 
+		// Render options with table support
 		buttonRefs.current = buttonRefs.current.slice(0, question.options.length);
 		buttonRefs.current.forEach((button, index) => {
 			if (button) {
-				MarkdownRenderer.render(app, question.options[index], button, "", component);
+				renderQuizContent(app, question.options[index], button, "", component);
 			}
 		});
 	}, [app, question]);
@@ -56,6 +60,7 @@ const SelectAllThatApplyQuestion = ({ app, question }: SelectAllThatApplyQuestio
 	return (
 		<div className="question-container-qg">
 			<div className="question-qg" ref={questionRef} />
+			<ConsensusIndicator consensusTrail={consensusTrail} />
 			<div className="select-all-that-apply-container-qg">
 				{question.options.map((_, index) => (
 					<button

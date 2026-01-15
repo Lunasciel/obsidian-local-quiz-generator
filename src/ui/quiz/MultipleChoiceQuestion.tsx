@@ -1,13 +1,17 @@
-import { App, Component, MarkdownRenderer } from "obsidian";
+import { App, Component } from "obsidian";
 import { useEffect, useRef, useState } from "react";
 import { MultipleChoice } from "../../utils/types";
+import { renderQuizContent } from "../../utils/rendering";
+import { QuestionConsensusTrail } from "../../consensus/types";
+import ConsensusIndicator from "../components/ConsensusIndicator";
 
 interface MultipleChoiceQuestionProps {
 	app: App;
 	question: MultipleChoice;
+	consensusTrail?: QuestionConsensusTrail;
 }
 
-const MultipleChoiceQuestion = ({ app, question }: MultipleChoiceQuestionProps) => {
+const MultipleChoiceQuestion = ({ app, question, consensusTrail }: MultipleChoiceQuestionProps) => {
 	const [userAnswer, setUserAnswer] = useState<number | null>(null);
 	const questionRef = useRef<HTMLDivElement>(null);
 	const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -15,16 +19,16 @@ const MultipleChoiceQuestion = ({ app, question }: MultipleChoiceQuestionProps) 
 	useEffect(() => {
 		const component = new Component();
 
-		question.question.split("\\n").forEach(questionFragment => {
-			if (questionRef.current) {
-				MarkdownRenderer.render(app, questionFragment, questionRef.current, "", component);
-			}
-		});
+		// Render question with table support
+		if (questionRef.current) {
+			renderQuizContent(app, question.question, questionRef.current, "", component);
+		}
 
+		// Render options with table support
 		buttonRefs.current = buttonRefs.current.slice(0, question.options.length);
 		buttonRefs.current.forEach((button, index) => {
 			if (button) {
-				MarkdownRenderer.render(app, question.options[index], button, "", component);
+				renderQuizContent(app, question.options[index], button, "", component);
 			}
 		});
 	}, [app, question]);
@@ -42,6 +46,7 @@ const MultipleChoiceQuestion = ({ app, question }: MultipleChoiceQuestionProps) 
 	return (
 		<div className="question-container-qg">
 			<div className="question-qg" ref={questionRef} />
+			<ConsensusIndicator consensusTrail={consensusTrail} />
 			<div className="multiple-choice-container-qg">
 				{question.options.map((_, index) => (
 					<button

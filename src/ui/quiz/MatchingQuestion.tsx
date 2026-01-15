@@ -1,14 +1,18 @@
-import { App, Component, MarkdownRenderer } from "obsidian";
+import { App, Component } from "obsidian";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Matching } from "../../utils/types";
 import { shuffleArray } from "../../utils/helpers";
+import { renderQuizContent } from "../../utils/rendering";
+import { QuestionConsensusTrail } from "../../consensus/types";
+import ConsensusIndicator from "../components/ConsensusIndicator";
 
 interface MatchingQuestionProps {
 	app: App;
 	question: Matching;
+	consensusTrail?: QuestionConsensusTrail;
 }
 
-const MatchingQuestion = ({ app, question }: MatchingQuestionProps) => {
+const MatchingQuestion = ({ app, question, consensusTrail }: MatchingQuestionProps) => {
 	const [selectedLeft, setSelectedLeft] = useState<number | null>(null);
 	const [selectedRight, setSelectedRight] = useState<number | null>(null);
 	const [selectedPairs, setSelectedPairs] = useState<{ leftIndex: number, rightIndex: number }[]>([]);
@@ -40,21 +44,21 @@ const MatchingQuestion = ({ app, question }: MatchingQuestionProps) => {
 	useEffect(() => {
 		const component = new Component();
 
-		question.question.split("\\n").forEach(questionFragment => {
-			if (questionRef.current) {
-				MarkdownRenderer.render(app, questionFragment, questionRef.current, "", component);
-			}
-		});
+		// Render question with table support
+		if (questionRef.current) {
+			renderQuizContent(app, question.question, questionRef.current, "", component);
+		}
 
+		// Render options with table support
 		buttonRefs.current = buttonRefs.current.slice(0, question.answer.length * 2);
 		question.answer.forEach((_, index) => {
 			const leftButton = buttonRefs.current[index * 2];
 			const rightButton = buttonRefs.current[index * 2 + 1];
 			if (leftButton) {
-				MarkdownRenderer.render(app, leftOptions[index].value, leftButton, "", component);
+				renderQuizContent(app, leftOptions[index].value, leftButton, "", component);
 			}
 			if (rightButton) {
-				MarkdownRenderer.render(app, rightOptions[index].value, rightButton, "", component);
+				renderQuizContent(app, rightOptions[index].value, rightButton, "", component);
 			}
 		});
 	}, [app, question, leftOptions, rightOptions]);
@@ -156,6 +160,7 @@ const MatchingQuestion = ({ app, question }: MatchingQuestionProps) => {
 	return (
 		<div className="question-container-qg">
 			<div className="question-qg" ref={questionRef} />
+			<ConsensusIndicator consensusTrail={consensusTrail} />
 			<div className="matching-container-qg">
 				{question.answer.map((_, index) => (
 					<Fragment key={index}>

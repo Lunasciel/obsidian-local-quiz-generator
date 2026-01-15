@@ -12,6 +12,9 @@ export const shuffleArray = <T>(array: T[]): T[] => {
 export const setIconAndTooltip = (element: HTMLElement, icon: string, tooltip: string): void => {
 	setIcon(element, icon);
 	setTooltip(element, tooltip);
+	// Ensure aria-label is set for accessibility
+	// This provides screen reader users with descriptive button labels
+	element.setAttribute("aria-label", tooltip);
 };
 
 export const countNoteTokens = (noteContents: string): number => {

@@ -1,12 +1,14 @@
-# vscode
-.vscode 
-
-# Intellij
-*.iml
-.idea
+# folder
+.vscode
+.claude/
+.specify/
+specs/
 
 # npm
 node_modules
+
+# test coverage
+coverage/
 
 # Don't include the compiled main.js file in the repo.
 # They should be uploaded to GitHub releases instead.

@@ -1,33 +1,35 @@
-import { App, Component, MarkdownRenderer, Notice } from "obsidian";
+import { App, Component, Notice } from "obsidian";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ShortOrLongAnswer } from "../../utils/types";
 import { QuizSettings } from "../../settings/config";
 import GeneratorFactory from "../../generators/generatorFactory";
 import AnswerInput from "../components/AnswerInput";
+import { renderQuizContent } from "../../utils/rendering";
+import { QuestionConsensusTrail } from "../../consensus/types";
+import ConsensusIndicator from "../components/ConsensusIndicator";
 
 interface ShortOrLongAnswerQuestionProps {
 	app: App;
 	question: ShortOrLongAnswer;
 	settings: QuizSettings;
+	consensusTrail?: QuestionConsensusTrail;
 }
 
-const ShortOrLongAnswerQuestion = ({ app, question, settings }: ShortOrLongAnswerQuestionProps) => {
+const ShortOrLongAnswerQuestion = ({ app, question, settings, consensusTrail }: ShortOrLongAnswerQuestionProps) => {
 	const [status, setStatus] = useState<"answering" | "evaluating" | "submitted">("answering");
 	const component = useMemo<Component>(() => new Component(), []);
 	const questionRef = useRef<HTMLDivElement>(null);
 	const answerRef = useRef<HTMLButtonElement>(null);
 
 	useEffect(() => {
-		question.question.split("\\n").forEach(questionFragment => {
-			if (questionRef.current) {
-				MarkdownRenderer.render(app, questionFragment, questionRef.current, "", component);
-			}
-		});
+		if (questionRef.current) {
+			renderQuizContent(app, question.question, questionRef.current, "", component);
+		}
 	}, [app, question, component]);
 
 	useEffect(() => {
 		if (answerRef.current && status === "submitted") {
-			MarkdownRenderer.render(app, question.answer, answerRef.current, "", component);
+			renderQuizContent(app, question.answer, answerRef.current, "", component);
 		}
 	}, [app, question, component, status]);
 
@@ -40,7 +42,7 @@ const ShortOrLongAnswerQuestion = ({ app, question, settings }: ShortOrLongAnswe
 		try {
 			setStatus("evaluating");
 			new Notice("Evaluating answer...");
-			const generator = GeneratorFactory.createInstance(settings);
+			const generator = GeneratorFactory.createForActiveModel(settings);
 			const similarity = await generator.shortOrLongAnswerSimilarity(input.trim(), question.answer);
 			const similarityPercentage = Math.round(similarity * 100);
 			if (similarityPercentage >= 80) {
@@ -58,6 +60,7 @@ const ShortOrLongAnswerQuestion = ({ app, question, settings }: ShortOrLongAnswe
 	return (
 		<div className="question-container-qg">
 			<div className="question-qg" ref={questionRef} />
+			<ConsensusIndicator consensusTrail={consensusTrail} />
 			{status === "submitted" && <button className="answer-qg" ref={answerRef} />}
 			<div className={status === "submitted" ? "input-container-qg" : "input-container-qg limit-height-qg"}>
 				<AnswerInput onSubmit={handleSubmit} clearInputOnSubmit={false} disabled={status !== "answering"} />

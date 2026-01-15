@@ -7,25 +7,33 @@
     "target": "ES6",
     "allowJs": true,
     "noImplicitAny": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "isolatedModules": true,
-	"strictNullChecks": true,
+    "strictNullChecks": true,
     "lib": [
       "DOM",
       "ES5",
       "ES6",
-      "ES7"
+      "ES7",
+      "ES2017",
+      "ES2019",
+      "ES2020"
     ],
-	"jsx": "react-jsx",
-	"esModuleInterop": true,
-	"strict": true
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "strict": true,
+    "types": ["@testing-library/jest-dom", "node"]
   },
   "include": [
-	"src/**/*.ts",
-	"src/**/*.tsx"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/types/**/*"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "src/**/__tests__/**/*"
   ]
 }

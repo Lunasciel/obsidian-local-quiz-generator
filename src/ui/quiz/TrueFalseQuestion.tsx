@@ -1,24 +1,26 @@
-import { App, Component, MarkdownRenderer } from "obsidian";
+import { App, Component } from "obsidian";
 import { useEffect, useRef, useState } from "react";
 import { TrueFalse } from "../../utils/types";
+import { renderQuizContent } from "../../utils/rendering";
+import { QuestionConsensusTrail } from "../../consensus/types";
+import ConsensusIndicator from "../components/ConsensusIndicator";
 
 interface TrueFalseQuestionProps {
 	app: App;
 	question: TrueFalse;
+	consensusTrail?: QuestionConsensusTrail;
 }
 
-const TrueFalseQuestion = ({ app, question }: TrueFalseQuestionProps) => {
+const TrueFalseQuestion = ({ app, question, consensusTrail }: TrueFalseQuestionProps) => {
 	const [userAnswer, setUserAnswer] = useState<boolean | null>(null);
 	const questionRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		const component = new Component();
 
-		question.question.split("\\n").forEach(questionFragment => {
-			if (questionRef.current) {
-				MarkdownRenderer.render(app, questionFragment, questionRef.current, "", component);
-			}
-		});
+		if (questionRef.current) {
+			renderQuizContent(app, question.question, questionRef.current, "", component);
+		}
 	}, [app, question]);
 
 	const getButtonClass = (buttonAnswer: boolean) => {
@@ -34,6 +36,7 @@ const TrueFalseQuestion = ({ app, question }: TrueFalseQuestionProps) => {
 	return (
 		<div className="question-container-qg">
 			<div className="question-qg" ref={questionRef} />
+			<ConsensusIndicator consensusTrail={consensusTrail} />
 			<div className="true-false-container-qg">
 				<button
 					className={getButtonClass(true)}

@@ -1,14 +1,18 @@
-import { App, Component, MarkdownRenderer, Notice } from "obsidian";
+import { App, Component, Notice } from "obsidian";
 import { useEffect, useRef, useState } from "react";
 import { FillInTheBlank } from "../../utils/types";
+import { renderQuizContent } from "../../utils/rendering";
 import AnswerInput from "../components/AnswerInput";
+import { QuestionConsensusTrail } from "../../consensus/types";
+import ConsensusIndicator from "../components/ConsensusIndicator";
 
 interface FillInTheBlankQuestionProps {
 	app: App;
 	question: FillInTheBlank;
+	consensusTrail?: QuestionConsensusTrail;
 }
 
-const FillInTheBlankQuestion = ({ app, question }: FillInTheBlankQuestionProps) => {
+const FillInTheBlankQuestion = ({ app, question, consensusTrail }: FillInTheBlankQuestionProps) => {
 	const [filledBlanks, setFilledBlanks] = useState<string[]>(Array(question.answer.length).fill(""));
 	const questionRef = useRef<HTMLDivElement>(null);
 
@@ -24,15 +28,11 @@ const FillInTheBlankQuestion = ({ app, question }: FillInTheBlankQuestionProps) 
 			});
 		};
 
-		if (questionRef.current) {
-			questionRef.current.empty();
-			const component = new Component();
+		const component = new Component();
 
-			generateQuestion().split("\\n").forEach(questionFragment => {
-				if (questionRef.current) {
-					MarkdownRenderer.render(app, questionFragment, questionRef.current, "", component);
-				}
-			});
+		// Render question with table support
+		if (questionRef.current) {
+			renderQuizContent(app, generateQuestion(), questionRef.current, "", component);
 		}
 	}, [app, question, filledBlanks]);
 
@@ -58,6 +58,7 @@ const FillInTheBlankQuestion = ({ app, question }: FillInTheBlankQuestionProps) 
 	return (
 		<div className="question-container-qg">
 			<div className="question-qg" ref={questionRef} />
+			<ConsensusIndicator consensusTrail={consensusTrail} />
 			<div className="input-container-qg">
 				<AnswerInput onSubmit={handleSubmit} disabled={filledBlanks.every(blank => blank.length > 0)} />
 				<div className="instruction-footnote-qg">

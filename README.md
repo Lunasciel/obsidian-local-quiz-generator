@@ -10,6 +10,7 @@ https://github.com/user-attachments/assets/22770da4-af69-412c-ae05-1aae0fff4a10
 
 ## Features
 
+### Quiz System
 - **Personalized Quizzes:** Choose any combination of notes and folders to use as the quiz content.
 - **Flexible Generation:** Select the types and number of questions to generate according to your needs.
 - **Multiple Question Types:** Supports true or false, multiple choice, select all that apply, fill in the blank, matching, short answer, and long answer. Mix and match for a tailored assessment experience.
@@ -18,18 +19,45 @@ https://github.com/user-attachments/assets/22770da4-af69-412c-ae05-1aae0fff4a10
   - Inline and multiline flashcards compatible with [obsidian-spaced-repetition](https://github.com/st3v3nmw/obsidian-spaced-repetition).
   - Markdown callouts for easy integration into your notes.
 - **Review and Create:** Review saved questions using the quiz UI or create your own questions from scratch without ever using the generator.
-- **Multi-Language Support:** Generate questions in 22 different languages.
-- **Math Support:** Generate questions from notes containing LaTeX.
+
+### Flashcard System
+- **AI-Powered Flashcard Generation:** Automatically create flashcards from your notes using OpenAI or Ollama.
+- **Spaced Repetition:** Built-in SM-2 algorithm optimizes review scheduling for better long-term retention.
+- **Multiple Practice Modes:**
+  - Standard (classic flashcard)
+  - Type Answer (active recall through typing)
+  - Multiple Choice (recognition-based learning)
+  - Cloze Deletion (fill-in-the-blank)
+- **Progressive Mastery Tracking:** Track cards from "New" → "Learning" → "Mastered" status.
+- **Deck Management:** Organize flashcards by topic, note, or folder with detailed statistics.
+- **Confidence-Based Scheduling:** Rate cards as Again, Hard, Good, or Easy to personalize review intervals.
+- **Customizable Settings:** Fine-tune spaced repetition parameters, intervals, and practice modes.
+- **Keyboard Shortcuts:** Fully customizable keyboard shortcuts for efficient review sessions.
+
+### LLM Council (Advanced Generation)
+- **Multi-Model Debate:** Multiple AI models (minimum 2, up to 10) collaborate through a structured debate process to generate higher-quality quizzes.
+- **Anonymous Critique:** Models anonymously evaluate each other's outputs, identifying strengths, weaknesses, and errors without bias.
+- **Consensus Ranking:** Responses are ranked using the Borda count voting algorithm to democratically identify the best content.
+- **Chair Synthesis:** A designated chair model synthesizes the best elements from all responses into a final, high-quality quiz.
+- **Full Transparency:** View the complete debate trail showing all responses, critiques, rankings, and synthesis decisions.
+- **Cost Tracking:** Monitor token usage and estimated costs across all phases (parallel query, critique, ranking, synthesis).
+- **Smart Caching:** Cache council results to avoid redundant API calls for identical inputs and settings.
+- **Flexible Configuration:** Choose which models participate, configure the chair selection strategy (highest-ranked, configured, rotating), and customize phase timeouts.
+- **Graceful Fallback:** Automatically falls back to single-model generation if the council process encounters errors.
+
+See the [LLM Council Guide](docs/COUNCIL.md) for detailed documentation and examples.
+
+### Rich Content Support
+- **Table Rendering:** Properly rendered markdown tables in both quizzes and flashcards with horizontal scrolling for wide tables.
+- **Math Support:** LaTeX formulas and equations fully supported.
+- **Code Blocks:** Syntax-highlighted code in questions, answers, and flashcards.
+- **Images and Diagrams:** Embed images and visual content in both quizzes and flashcards.
+- **Multi-Language Support:** Generate content in 22 different languages.
 
 ## Supported Providers
 
-- [OpenAI](https://openai.com/): Advanced models for high-quality question generation.
-- [Google](https://ai.google.dev/): Free to use with the largest context window for handling extensive notes.
-- [Anthropic](https://www.anthropic.com/): Optimized for thoughtful and contextually aware outputs.
-- [Perplexity](https://www.perplexity.ai/): Fine-tuned LLaMA models for robust question generation.
-- [Mistral](https://mistral.ai/): Lightweight models for fast and efficient processing.
-- [Cohere](https://cohere.com/): Free to use with strengths in generating coherent questions.
 - [Ollama](https://ollama.com/): Local LLMs for enhanced privacy and offline processing.
+- [LM Studio](https://lmstudio.ai/): Run models locally via OpenAI-compatible API for private, offline question and flashcard generation.
 
 ## Usage
 
@@ -44,8 +72,9 @@ This plugin is now available in the **Community plugins** page in Obsidian. You 
    - Search for `Quiz Generator`.
    - Select the plugin to open its page and then select **Install**.
    - Select **Enable** on the plugin page or go back to the **Community plugins** page and toggle the switch.
-2. Open the plugin settings and enter your API key for the selected provider.
-   - If you don't have an API key, create an account at the relevant provider's site and retrieve your API key.
+2. Configure your local LLM provider:
+   - **For Ollama**: Install [Ollama](https://ollama.com/) and pull a model (e.g., `ollama pull llama2`). The plugin will connect to Ollama running on your local machine.
+   - **For LM Studio**: Install [LM Studio](https://lmstudio.ai/), download a model, start the local server, and configure the base URL in the plugin settings (typically `http://localhost:1234/v1`).
 3. Configure the other settings as desired.
 
 #### Manual Installation
@@ -54,8 +83,9 @@ This plugin is now available in the **Community plugins** page in Obsidian. You 
 2. Go to your Obsidian vault's `plugins` folder and create a new folder named `quiz-generator`.
 3. Move the files you downloaded in step 1 to this folder.
 4. Enable the plugin in the **Community plugins** page in Obsidian.
-5. Open the plugin settings and enter your API key for the selected provider.
-   - If you don't have an API key, create an account at the relevant provider's site and retrieve your API key.
+5. Configure your local LLM provider:
+   - **For Ollama**: Install [Ollama](https://ollama.com/) and pull a model (e.g., `ollama pull llama2`). The plugin will connect to Ollama running on your local machine.
+   - **For LM Studio**: Install [LM Studio](https://lmstudio.ai/), download a model, start the local server, and configure the base URL in the plugin settings (typically `http://localhost:1234/v1`).
 6. Configure the other settings as desired.
 
 ### Generation
@@ -77,6 +107,125 @@ This plugin is now available in the **Community plugins** page in Obsidian. You 
 ### Reviewing Saved Quizzes
 
 - Open the command palette and select "Quiz Generator: Open quiz from active note" or right-click a note in the file explorer and select "Open quiz from this note" in the file menu.
+
+### Working with Flashcards
+
+#### Generating Flashcards
+
+1. **From Active Note**:
+   - Command palette: "Quiz Generator: Generate flashcards from active note"
+   - Or use the generator UI and switch to flashcard mode
+
+2. **Configure and Generate**:
+   - Choose number of flashcards
+   - Select LLM provider (OpenAI or Ollama)
+   - Click generate
+   - Review generated flashcards immediately
+
+3. **Save Flashcards**:
+   - Save individual flashcards or all at once
+   - Choose between Callout or Spaced Repetition format in settings
+   - Flashcards are automatically added to a deck
+
+#### Reviewing Flashcards
+
+1. **Start a Review Session**:
+   - Quick actions in settings: **Settings** → **Quiz Generator** → **Flashcards** → Click "Review flashcards" button
+   - Command palette: "Quiz Generator: Review flashcards"
+   - Or click the flashcard icon in the ribbon
+
+2. **Select a Deck**:
+   - View deck statistics (new, learning, mastered, due today)
+   - Select one or more decks to study
+   - Choose your preferred practice mode
+
+3. **Practice and Rate**:
+   - Review cards using your chosen practice mode
+   - Rate your confidence: Again (1), Hard (2), Good (3), Easy (4)
+   - Use keyboard shortcuts for faster review
+   - Track session progress and statistics
+
+#### Managing Decks
+
+Access deck management through:
+- Quick actions in settings: **Settings** → **Quiz Generator** → **Flashcards** → Click "Manage decks" button
+- Command palette: "Quiz Generator: Manage flashcard decks"
+
+Features:
+- View all decks with detailed statistics
+- Create new decks manually
+- Configure deck-specific settings (new cards per day, practice modes, etc.)
+- Delete decks (with option to keep or remove cards)
+
+#### Viewing Statistics
+
+Track your flashcard progress and performance:
+- Quick actions in settings: **Settings** → **Quiz Generator** → **Flashcards** → Click "View statistics" button
+- View overall progress, mastery levels, and review history
+- Filter by deck to see specific statistics
+- Start a review session directly from statistics view
+
+For a comprehensive guide to the flashcard system, see [docs/FLASHCARDS.md](docs/FLASHCARDS.md).
+
+### Using LLM Council Mode
+
+The LLM Council feature enables multiple AI models to collaborate through a structured debate process, resulting in higher-quality quiz content. This is ideal for high-stakes assessments, complex subject matter, or when accuracy is paramount.
+
+1. **Enable Council Mode**:
+   - **Settings** → **Quiz Generator** → **LLM Council**
+   - Toggle "Enable Council Mode"
+
+2. **Configure Council Members**:
+   - Select at least 2 models to participate (up to 10 models supported)
+   - Each model requires valid API credentials
+   - Each model contributes unique perspectives and reasoning
+   - More models = more diverse insights and better quality (but higher cost and longer generation time)
+
+3. **Select Chair Strategy**:
+   - **Highest-Ranked**: Automatically uses the best-performing model (recommended)
+   - **Configured**: Always use a specific model you trust
+   - **Rotating**: Distribute load across models in round-robin fashion
+
+4. **Generate with Council**:
+   - Open the generator and add your notes/folders
+   - The council mode toggle appears alongside quiz/flashcard modes
+   - Click generate and watch progress through all five phases:
+     - Phase 1: Parallel Query (all models generate independently)
+     - Phase 2: Anonymous Critique (models evaluate each other)
+     - Phase 3: Ranking (responses ranked by consensus)
+     - Phase 4: Chair Synthesis (chair creates final quiz)
+     - Phase 5: Finalization (build audit trail)
+
+5. **Review the Debate Trail** (optional):
+   - View all initial responses from each model
+   - See critiques identifying strengths, weaknesses, and errors
+   - Examine consensus rankings and Borda count scores
+   - Understand which elements were incorporated into the final quiz
+   - Review detailed token usage breakdown by phase (parallel query, critique, ranking, synthesis)
+   - Monitor per-model token consumption and total estimated cost
+
+**When to Use Council Mode:**
+- ✅ High-stakes quizzes (exams, certifications)
+- ✅ Complex subject matter requiring multiple perspectives
+- ✅ When accuracy is more important than speed/cost
+- ✅ Quality validation for educational content
+- ✅ When you need transparency into the generation process
+
+**When NOT to Use Council Mode:**
+- ❌ Quick practice quizzes for personal study
+- ❌ Simple, straightforward content
+- ❌ Budget-constrained scenarios (higher token usage)
+- ❌ Real-time generation requirements (slower due to multiple phases)
+
+**Additional Configuration Options:**
+- Enable/disable critique and ranking phases independently
+- Set minimum models required (default: 2)
+- Configure phase-specific timeouts (parallel query, critique, ranking, synthesis)
+- Enable caching to reuse results for identical inputs
+- Toggle fallback to single-model generation on errors
+- Control debate trail visibility and storage
+
+For detailed configuration options, usage examples, and best practices, see the [LLM Council Guide](docs/COUNCIL.md).
 
 ### Miscellaneous
 
@@ -347,6 +496,92 @@ Long Answer: {Insert your question here} Insert inline separator you chose in th
 
 Long Answer: Explain the difference between a stock and a bond, and discuss the risks and potential rewards associated with each investment type. :: A stock represents ownership in a company and a claim on part of its profits. The potential rewards include dividends and capital gains if the company's value increases, but the risks include the possibility of losing the entire investment if the company fails. A bond is a loan made to a company or government, which pays interest over time and returns the principal at maturity. Bonds are generally considered less risky than stocks, as they provide regular interest payments and the return of principal, but they offer lower potential returns.
 ```
+
+### Flashcard Formats
+
+Flashcards can be saved in two formats, both supporting rich markdown content including tables, code blocks, images, and LaTeX.
+
+#### Callout Format
+
+Obsidian-style callouts with front (question), back (answer), and optional hint:
+
+```markdown
+> [!flashcard] What is the capital of France?
+>> [!answer]-
+>> Paris
+>>
+>> [!hint]- (optional)
+>> Think of the Eiffel Tower
+```
+
+**Example with Table:**
+
+```markdown
+> [!flashcard] What are the primary colors and their wavelengths?
+>> [!answer]-
+>> | Color | Wavelength |
+>> | ----- | ---------- |
+>> | Red   | ~700 nm    |
+>> | Green | ~550 nm    |
+>> | Blue  | ~450 nm    |
+```
+
+#### Spaced Repetition Format
+
+Inline format compatible with obsidian-spaced-repetition plugin:
+
+```markdown
+**Flashcard:** What is the capital of France? :: Paris
+```
+
+**Example with Code:**
+
+```markdown
+**Flashcard:** What does this Python function calculate?
+\`\`\`python
+def factorial(n):
+    return 1 if n <= 1 else n * factorial(n-1)
+\`\`\`
+:: It calculates the factorial of a number using recursion
+```
+
+You can switch between formats in Settings → Quiz Generator → Flashcards → Flashcard save format.
+
+### Table Support
+
+Both quizzes and flashcards fully support markdown tables with automatic horizontal scrolling for wide tables.
+
+**Example Quiz Question with Table:**
+
+```markdown
+> [!question] Based on the table below, which element has the highest atomic mass?
+> | Element | Symbol | Atomic Mass |
+> | ------- | ------ | ----------- |
+> | Oxygen  | O      | 15.999      |
+> | Carbon  | C      | 12.011      |
+> | Nitrogen| N      | 14.007      |
+>> [!success]- Answer
+>> Oxygen
+```
+
+**Example Flashcard with Table:**
+
+```markdown
+> [!flashcard] What are the Git commands for basic version control?
+>> [!answer]-
+>> | Command | Purpose |
+>> | ------- | ------- |
+>> | git add | Stage changes |
+>> | git commit | Save changes |
+>> | git push | Upload to remote |
+>> | git pull | Download from remote |
+```
+
+Tables work seamlessly in:
+- All quiz question types
+- All flashcard practice modes
+- Both callout and spaced repetition formats
+- Questions, answers, hints, and options
 
 ## Coming Soon
 

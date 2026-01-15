@@ -11,6 +11,7 @@ import {
 } from "../utils/typeGuards";
 import { shuffleArray } from "../utils/helpers";
 import { SaveFormat } from "../settings/saving/savingConfig";
+import ContentSourceTracker from "./flashcards/contentSourceTracker";
 
 export default class QuizSaver {
 	private readonly app: App;
@@ -18,6 +19,7 @@ export default class QuizSaver {
 	private readonly quizSources: TFile[];
 	private readonly saveFilePath: string;
 	private readonly validSavePath: boolean;
+	private readonly contentSourceTracker: ContentSourceTracker;
 
 	constructor(app: App, settings: QuizSettings, quizSources: TFile[]) {
 		this.app = app;
@@ -25,6 +27,7 @@ export default class QuizSaver {
 		this.quizSources = quizSources;
 		this.saveFilePath = this.getSaveFilePath();
 		this.validSavePath = this.app.vault.getAbstractFileByPath(this.settings.savePath) instanceof TFolder;
+		this.contentSourceTracker = new ContentSourceTracker(this.app, this.settings);
 	}
 
 	public async saveQuestion(question: Question): Promise<void> {
@@ -34,6 +37,11 @@ export default class QuizSaver {
 			await this.app.vault.append(saveFile, this.createSpacedRepetitionQuestion(question));
 		} else {
 			await this.app.vault.append(saveFile, this.createCalloutQuestion(question));
+		}
+
+		// Track the quiz file with its source notes
+		if (this.quizSources.length > 0) {
+			await this.trackQuizSources();
 		}
 
 		if (this.validSavePath) {
@@ -57,6 +65,12 @@ export default class QuizSaver {
 
 		const saveFile = await this.getSaveFile();
 		await this.app.vault.append(saveFile, quiz.join(""));
+
+		// Track the quiz file with its source notes
+		if (this.quizSources.length > 0) {
+			await this.trackQuizSources();
+		}
+
 		if (this.validSavePath) {
 			new Notice("All questions saved");
 		} else {
@@ -212,5 +226,19 @@ export default class QuizSaver {
 			const rightLetter = String.fromCharCode(110 + rightOptions.indexOf(pair.rightOption));
 			return `${leftLetter}) -> ${rightLetter})`;
 		});
+	}
+
+	/**
+	 * Track the quiz file with its source notes in ContentSourceTracker
+	 * Implements Requirement 10.1, 10.4
+	 */
+	private async trackQuizSources(): Promise<void> {
+		try {
+			const sourceNotePaths = this.quizSources.map(file => file.path);
+			await this.contentSourceTracker.trackQuiz(this.saveFilePath, sourceNotePaths);
+		} catch (error) {
+			console.error("Error tracking quiz sources:", error);
+			// Don't throw - tracking failure shouldn't prevent quiz saving
+		}
 	}
 }
